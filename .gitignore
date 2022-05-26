@@ -1,0 +1,18 @@
+content/
+output/
+__pycache__
+.vscode
+.DS_Store
+/data/
+checkpoints/
+tmp/
+*.pyc
+# weights
+*.pt
+*.pth
+*.zip
+*.onnx
+*.trt
+*.egg-info
+*.eggs
+*.json
