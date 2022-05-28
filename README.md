@@ -1,6 +1,6 @@
 <div align="center">
 
- # Live Novel
+# Live Novel
 ---
 
 **Self-host application can generate illustration from a novel by highlighting certain sentences**
