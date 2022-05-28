@@ -1,9 +1,9 @@
 <div align="center">
 
-## Live Novel
+ # Live Novel
 ---
 
-**Self-host application can generate images from a novel by highlighting certain sentences**
+**Self-host application can generate illustration from a novel by highlighting certain sentences**
 
 ![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)
 
