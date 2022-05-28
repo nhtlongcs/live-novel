@@ -11,7 +11,7 @@
 
 ---
 ## About 
-Introducing a new app that is now available on [nhtlongcs.com](nhtlongcs.com/live-novel). This app can generate images from a novel by highlighting certain sentences. The app is easy to use; all you have to do is enter the name of the book and the highlighted sentences will be displayed as images. This can be a great way for authors to promote their work, or for readers to get imagination of what the scene is about without having to do it themselves.
+Introducing a new app that is available soon on [nhtlongcs.com](nhtlongcs.com/live-novel). This app can generate images from a novel by highlighting certain sentences. The app is easy to use; all you have to do is enter the name of the book and the highlighted sentences will be displayed as images. This can be a great way for authors to promote their work, or for readers to get imagination of what the scene is about without having to do it themselves.
 
 
 ## Installation 
