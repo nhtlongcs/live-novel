@@ -6,6 +6,7 @@ import argparse
 import io
 import os
 from types import MethodDescriptorType
+import hashlib
 
 import pandas as pd
 import json
@@ -16,24 +17,86 @@ from flask import Flask, render_template, request, redirect
 from flask import Response
 import sys
 
+import torch
+
+# from diffusion import *
+from types import SimpleNamespace
+from diffusion import (
+    do_run,
+    args,
+    create_model_and_diffusion,
+    split_prompts,
+    model_config,
+    model_path,
+    diffusion_model,
+)
+from config import device
+import gc
+
+from collections import OrderedDict
 
 app = Flask(__name__)
 
 DREAM_URL = "/"
-# run_cmd = """
-# python  diffusion.py -s 800 480 -i 250 -cuts 4 \
-#         -p "{}" \
-#         -dvitb32 yes -dvitb16 yes -dvitl14 yes -drn101 no -drn50 yes \
-#         -drn50x4 no -drn50x16 no -drn50x64 no -sd 2586166778 \
-#         -o output/result.png
-# """
-run_cmd = """
-python  diffusion.py -s 64 64 -i 2 -cuts 1 \
-        -p "{}" \
-        -dvitb32 yes -dvitb16 no -dvitl14 no -drn101 no -drn50 yes \
-        -drn50x4 no -drn50x16 no -drn50x64 no -sd 2586166778 \
-        -o output/result.png
-"""
+
+cache = OrderedDict()
+cacheLengthMax = 65536
+
+print("Prepping model...")
+model, diffusion = create_model_and_diffusion(**model_config)
+model.load_state_dict(
+    torch.load(f"{model_path}/{diffusion_model}.pt", map_location="cpu")
+)
+model.requires_grad_(False).eval().to(device)
+for name, param in model.named_parameters():
+    if "qkv" in name or "norm" in name or "proj" in name:
+        param.requires_grad_()
+if model_config["use_fp16"]:
+    model.convert_to_fp16()
+
+gc.collect()
+torch.cuda.empty_cache()
+
+
+def run(prompt, seed):
+    global args
+    if prompt:
+        text_prompts = {
+            0: prompt.split("|"),
+        }
+        # not necessary but makes the cli output easier to parse
+        for x in range(len(text_prompts[0])):
+            text_prompts[0][x] = text_prompts[0][x].strip()
+    hashid = hashlib.md5("-".join([prompt, str(seed)]).encode()).hexdigest()
+    req = {
+        "seed": seed,
+        "prompts_series": split_prompts(text_prompts) if text_prompts else None,
+        "output_filename": f"{hashid}.png",
+        "output_dir": "output/",
+    }
+    if hashid in cache:
+        print(f"Using cached image for {hashid}")
+        return cache[hashid]
+
+    args.update(req)
+    args_ns = SimpleNamespace(**args)
+
+    try:
+        do_run(args_ns, model, diffusion)
+
+        with open("output/log.txt", "a") as fd:
+            fd.write(f"\n{hashid}.png, {prompt}")
+        cache[hashid] = f"output/{hashid}.png"
+
+        if len(cache) > cacheLengthMax:
+            cache.popitem(last=False)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        gc.collect()
+        torch.cuda.empty_cache()
+
+    return os.path.join(req["output_dir"], req["output_filename"])
 
 
 def image_to_byte_array(image: Image):
@@ -53,12 +116,12 @@ def dream():
         print("=" * 10)
         print(json_data)
         print("=" * 10)
-        promt = json_data["text"]
+        prompt = json_data["text"]
         style = json_data.get("style", "watercolor")
-        text = f"{promt} | text:-0.99 | watermark:-0.99 | logo:-0.99 | {style}"
-        print(run_cmd.format(text))
-        os.system(run_cmd.format(text))
-        imgByteArr = image_to_byte_array(Image.open("output/im.png"))
+        seed = json_data.get("seed", 2586166778)
+        prompt = f"{prompt} | text:-0.99 | watermark:-0.99 | logo:-0.99 | {style}"
+        im_path = run(prompt, seed)
+        imgByteArr = image_to_byte_array(Image.open(im_path))
         return imgByteArr
 
 
@@ -67,9 +130,9 @@ if __name__ == "__main__":
     parser.add_argument("--port", default=5000, type=int, help="port number")
     parser.add_argument("--ngrok", default=False, action="store_true")
 
-    args = parser.parse_args()
+    _args = parser.parse_args()
 
-    if args.ngrok:
+    if _args.ngrok:
         from flask_ngrok import run_with_ngrok
 
         run_with_ngrok(app)  # Start ngrok when app is run
@@ -77,5 +140,5 @@ if __name__ == "__main__":
         app.run(threaded=True)  # debug=True causes Restarting with stat
     else:
         app.run(
-            host="0.0.0.0", port=args.port, threaded=True
+            host="0.0.0.0", port=_args.port, threaded=True
         )  # debug=True causes Restarting with stat

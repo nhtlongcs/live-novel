@@ -14,6 +14,7 @@ iargs = {
     "cutn": 4,
     "init_image": None,
     "max_iterations": 250,
+    "seed": 2586166778,
     "size": [800, 480],
     "skip_steps": -1,
 }
