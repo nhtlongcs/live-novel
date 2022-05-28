@@ -36,6 +36,6 @@ $ docker run --rm --name live-novel --gpus device=0 -p 5001:5001 -it -v $(pwd)/:
 
 ## Acknoledgements
 
-To make this app work, we heavily adapted from [disco diffusion repo](https://github.com/alembics/disco-diffusion) and related projects (e.g. [gui-diffusion](https://github.com/crowsonkb/guided-diffusion), [resize-right](https://github.com/assafshocher/ResizeRight), [latent-diffusion](https://github.com/CompVis/latent-diffusion))
+To make this app work, we heavily adopted from [disco diffusion repo](https://github.com/alembics/disco-diffusion) and related projects (e.g. [gui-diffusion](https://github.com/crowsonkb/guided-diffusion), [resize-right](https://github.com/assafshocher/ResizeRight), [latent-diffusion](https://github.com/CompVis/latent-diffusion), [taming transformers](https://github.com/CompVis/taming-transformers))
 
 To enhance the result quality, we used [ESRGAN](https://github.com/xinntao/ESRGAN) for image super resolution.
