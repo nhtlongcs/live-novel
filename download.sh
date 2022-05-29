@@ -1,1 +1,2 @@
-gdown "https://drive.google.com/uc?id=1-zyXBWcsvGfbAPrtKD8bgkge7K3oQgbJ"
+gdown "https://drive.google.com/uc?id=145q-t5UmO660qnipLAUbE7y7TST6U9xP"
+unzip weights.zip

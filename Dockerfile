@@ -42,12 +42,16 @@ RUN --mount=type=cache,id=apt-dev,target=/var/cache/apt \
 
 
 # Install repo dependencies 
-COPY ./ $WORKDIR
+COPY ./ .
 RUN chown -R $USERNAME:$USERNAME /home/$USERNAME/
 
 SHELL ["/bin/bash","-c"]
 RUN python -m pip install -r requirements.txt
 
+WORKDIR ESRGAN
+RUN python setup.py install
+
 USER $USERNAME
-# RUN conda init bash 
+WORKDIR /home/$USERNAME/workspace/
+
 # ENTRYPOINT ["sh", "run.sh"]
