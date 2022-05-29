@@ -30,9 +30,10 @@ from diffusion import (
     model_path,
     diffusion_model,
 )
+import cv2
 from config import device
 import gc
-
+from ESRGAN.wrapper import setup_enhance
 from collections import OrderedDict
 
 app = Flask(__name__)
@@ -53,6 +54,8 @@ for name, param in model.named_parameters():
         param.requires_grad_()
 if model_config["use_fp16"]:
     model.convert_to_fp16()
+
+enhancer = setup_enhance(f"{model_path}/RealESRGAN_x4plus_anime_6B.pth")
 
 gc.collect()
 torch.cuda.empty_cache()
@@ -99,6 +102,21 @@ def run(prompt, seed):
     return os.path.join(req["output_dir"], req["output_filename"])
 
 
+def enhance(path):
+    """Inference demo for Real-ESRGAN."""
+    try:
+        print("upscaling")
+        img = cv2.imread(path, cv2.IMREAD_UNCHANGED)
+        output, _ = enhancer.enhance(img, outscale=4)
+        cv2.imwrite(path, output)
+        del img
+    except Exception as e:
+        print(f"upscale failed : \n{e}")
+    finally:
+        gc.collect()
+        torch.cuda.empty_cache()
+
+
 def image_to_byte_array(image: Image):
     imgByteArr = io.BytesIO()
     image.save(imgByteArr, format="PNG")
@@ -121,6 +139,7 @@ def dream():
         seed = json_data.get("seed", 2586166778)
         prompt = f"{prompt} | text:-0.99 | watermark:-0.99 | logo:-0.99 | {style}"
         im_path = run(prompt, seed)
+        enhance(im_path)
         imgByteArr = image_to_byte_array(Image.open(im_path))
         return imgByteArr
 
