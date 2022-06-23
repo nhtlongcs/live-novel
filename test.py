@@ -5,7 +5,8 @@ import json
 from PIL import Image
 import io
 
-API = f"http://nhtlongcs.com:5000"
+# API = f"http://nhtlongcs.com:5000"
+API = f"http://localhost:1000"
 
 data = {
     "text": "a shining lighthouse on the shore of a tropical island in a raging storm",
