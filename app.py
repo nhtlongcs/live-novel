@@ -44,7 +44,7 @@ cacheLengthMax = 65536
 
 def init_cache(foldername):
     cache = {}
-    exist_ims = [os.path.basename(x) for x in glob.glob(f"{foldername}/*.png")]
+    exist_ims = [os.path.basename(x) for x in glob.glob(f"{foldername}/*.png")][:65536]
     for imp in exist_ims:
         cache[imp.split(".")[0]] = os.path.join(foldername, imp)
     return cache
