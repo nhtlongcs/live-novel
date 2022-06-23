@@ -21,48 +21,75 @@ import torch
 
 # from diffusion import *
 from types import SimpleNamespace
-from diffusion import (
-    do_run,
-    args,
-    create_model_and_diffusion,
-    split_prompts,
-    model_config,
-    model_path,
-    diffusion_model,
-)
+
 import cv2
 from config import device
 import gc
-from ESRGAN.wrapper import setup_enhance
 from collections import OrderedDict
+import glob
 
 app = Flask(__name__)
 
-DREAM_URL = "/"
+parser = argparse.ArgumentParser(description="Flask app exposing yolov5 models")
+parser.add_argument("--port", default=5000, type=int, help="port number")
+parser.add_argument("--debug", action="store_true", default=False)
+parser.add_argument("--ngrok", default=False, action="store_true")
 
+_args = parser.parse_args()
+DEBUG = _args.debug
+DREAM_URL = "/"
 cache = OrderedDict()
 cacheLengthMax = 65536
 
-print("Prepping model...")
-model, diffusion = create_model_and_diffusion(**model_config)
-model.load_state_dict(
-    torch.load(f"{model_path}/{diffusion_model}.pt", map_location="cpu")
-)
-model.requires_grad_(False).eval().to(device)
-for name, param in model.named_parameters():
-    if "qkv" in name or "norm" in name or "proj" in name:
-        param.requires_grad_()
-if model_config["use_fp16"]:
-    model.convert_to_fp16()
 
-enhancer = setup_enhance(f"{model_path}/RealESRGAN_x4plus_anime_6B.pth")
-
-gc.collect()
-torch.cuda.empty_cache()
+def init_cache(foldername):
+    cache = {}
+    exist_ims = [os.path.basename(x) for x in glob.glob(f"{foldername}/*.png")]
+    for imp in exist_ims:
+        cache[imp.split(".")[0]] = os.path.join(foldername, imp)
+    return cache
 
 
-def run(prompt, seed):
-    global args
+if not (DEBUG):
+    from diffusion import (
+        do_run,
+        args,
+        create_model_and_diffusion,
+        split_prompts,
+        model_config,
+        model_path,
+        diffusion_model,
+    )
+    from ESRGAN.wrapper import setup_enhance
+
+    print("Prepping model...")
+    model, diffusion = create_model_and_diffusion(**model_config)
+    model.load_state_dict(
+        torch.load(f"{model_path}/{diffusion_model}.pt", map_location="cpu")
+    )
+    model.requires_grad_(False).eval().to(device)
+    for name, param in model.named_parameters():
+        if "qkv" in name or "norm" in name or "proj" in name:
+            param.requires_grad_()
+    if model_config["use_fp16"]:
+        model.convert_to_fp16()
+
+    enhancer = setup_enhance(f"{model_path}/RealESRGAN_x4plus_anime_6B.pth")
+
+    gc.collect()
+    torch.cuda.empty_cache()
+    cache = init_cache("output")
+
+
+else:
+    import numpy as np
+    import cv2 as cv
+
+    os.makedirs("output_simulate/", exist_ok=True)
+    cache = init_cache("output_simulate")
+
+
+def get_hashid(prompt, seed):
     if prompt:
         text_prompts = {
             0: prompt.split("|"),
@@ -71,35 +98,8 @@ def run(prompt, seed):
         for x in range(len(text_prompts[0])):
             text_prompts[0][x] = text_prompts[0][x].strip()
     hashid = hashlib.md5("-".join([prompt, str(seed)]).encode()).hexdigest()
-    req = {
-        "seed": seed,
-        "prompts_series": split_prompts(text_prompts) if text_prompts else None,
-        "output_filename": f"{hashid}.png",
-        "output_dir": "output/",
-    }
-    if hashid in cache:
-        print(f"Using cached image for {hashid}")
-        return cache[hashid]
 
-    args.update(req)
-    args_ns = SimpleNamespace(**args)
-
-    try:
-        do_run(args_ns, model, diffusion)
-
-        with open("output/log.txt", "a") as fd:
-            fd.write(f"\n{hashid}.png, {prompt}")
-        cache[hashid] = f"output/{hashid}.png"
-
-        if len(cache) > cacheLengthMax:
-            cache.popitem(last=False)
-    except KeyboardInterrupt:
-        pass
-    finally:
-        gc.collect()
-        torch.cuda.empty_cache()
-
-    return os.path.join(req["output_dir"], req["output_filename"])
+    return hashid, text_prompts
 
 
 def enhance(path):
@@ -115,6 +115,77 @@ def enhance(path):
     finally:
         gc.collect()
         torch.cuda.empty_cache()
+
+
+def run_simulate(prompt, seed):
+    def generate_random_image(image_path):
+        data = np.random.randint(0, 255, size=(1000, 1000, 3), dtype=np.uint8)
+        cv.imwrite(image_path, data)
+
+    hashid, text_prompts = get_hashid(prompt, seed)
+    if hashid in cache:
+        print(f"Using cached image for {hashid}")
+        return cache[hashid]
+
+    req = {
+        "seed": seed,
+        "output_filename": f"{hashid}.png",
+        "output_dir": "output_simulate/",
+    }
+
+    im_path = os.path.join(req["output_dir"], req["output_filename"])
+    try:
+        generate_random_image(im_path)
+        with open("output_simulate/log.txt", "a") as fd:
+            fd.write(f"\n{hashid}.png, {prompt}")
+        cache[hashid] = f"output_simulate/{hashid}.png"
+        if len(cache) > cacheLengthMax:
+            cache.popitem(last=False)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        gc.collect()
+
+    return im_path
+
+
+def run(prompt, seed):
+    global args
+
+    hashid, text_prompts = get_hashid(prompt, seed)
+
+    if hashid in cache:
+        print(f"Using cached image for {hashid}")
+        return cache[hashid]
+
+    req = {
+        "seed": seed,
+        "prompts_series": split_prompts(text_prompts) if text_prompts else None,
+        "output_filename": f"{hashid}.png",
+        "output_dir": "output/",
+    }
+
+    args.update(req)
+    args_ns = SimpleNamespace(**args)
+    im_path = os.path.join(req["output_dir"], req["output_filename"])
+    try:
+        do_run(args_ns, model, diffusion)
+        enhance(im_path)
+
+        with open("output/log.txt", "a") as fd:
+            fd.write(f"\n{hashid}.png, {prompt}")
+        cache[hashid] = f"output/{hashid}.png"
+
+        if len(cache) > cacheLengthMax:
+            cache.popitem(last=False)
+
+    except KeyboardInterrupt:
+        pass
+    finally:
+        gc.collect()
+        torch.cuda.empty_cache()
+
+    return im_path
 
 
 def image_to_byte_array(image: Image):
@@ -138,18 +209,12 @@ def dream():
         style = json_data.get("style", "watercolor")
         seed = json_data.get("seed", 2586166778)
         prompt = f"{prompt} | text:-0.99 | watermark:-0.99 | logo:-0.99 | {style}"
-        im_path = run(prompt, seed)
-        enhance(im_path)
+        im_path = run_simulate(prompt, seed) if DEBUG else run(prompt, seed)
         imgByteArr = image_to_byte_array(Image.open(im_path))
         return imgByteArr
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Flask app exposing yolov5 models")
-    parser.add_argument("--port", default=5000, type=int, help="port number")
-    parser.add_argument("--ngrok", default=False, action="store_true")
-
-    _args = parser.parse_args()
 
     if _args.ngrok:
         from flask_ngrok import run_with_ngrok

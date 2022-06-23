@@ -53,5 +53,3 @@ RUN python setup.py install
 
 USER $USERNAME
 WORKDIR /home/$USERNAME/workspace/
-
-# ENTRYPOINT ["sh", "run.sh"]
