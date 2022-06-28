@@ -19,20 +19,31 @@ Introducing a new app that is ~now available~ (WIP) on [novel.nhtlongcs.com](htt
 By prebuilt docker image, you can run the app without any specific configuration.
 ```bash
 $ docker pull nhtlongcs/live-novel
-$ docker run --rm --name live-novel --gpus device=0 -p 5001:5001 -it -v $(pwd)/:/home/dreamer/workspace/src/ live-novel:latest /bin/bash
 ```
 <details>
 <summary>Other installations</summary>
 
 To install **Live-Novel** and customize locally
-<!-- ssh -N -f -p 12156 -L localhost:8080:localhost:8080 root@ssh4.vast.ai -->
+<!-- ssh -N -f -p 12156 -L 0.0.0.0:8080:0.0.0.0:8080 root@ssh4.vast.ai -->
 ```bash
 $ cd <this-repo>
 $ DOCKER_BUILDKIT=1 docker build -t live-novel:latest .
-$ docker run --rm --name live-novel --gpus device=0 -p 5001:5001 -it -v $(pwd)/:/home/dreamer/workspace/src/ live-novel:latest /bin/bash
 ```
 </details>
 
+## Usage 
+
+```bash
+$ docker run --rm --name live-novel --gpus device=0 -p 5001:5001 -it live-novel:latest /bin/bash
+$ cd ~/workspace 
+$ python app.py --port XXXXX 
+```
+
+Use environment variable `CUDA_VISIBLE_DEVICES=-1` to disable cuda.
+
+For debug mode, server will respone a random image. To enable debug mode, use flag `--debug` when running `app.py`
+
+For customize purpose, please clone this repo and use flag `-v $(pwd)/:/home/dreamer/workspace/src/` to replace source code in the docker
 
 ## Acknoledgements
 
