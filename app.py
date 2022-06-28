@@ -15,6 +15,8 @@ from pathlib import Path
 import torch
 from flask import Flask, render_template, request, redirect
 from flask import Response
+from flask_cors import CORS
+
 import sys
 
 import torch
@@ -29,6 +31,8 @@ from collections import OrderedDict
 import glob
 
 app = Flask(__name__)
+CORS(app)
+
 
 parser = argparse.ArgumentParser(description="Flask app exposing yolov5 models")
 parser.add_argument("--port", default=5000, type=int, help="port number")
@@ -97,7 +101,7 @@ def get_hashid(prompt, seed):
         # not necessary but makes the cli output easier to parse
         for x in range(len(text_prompts[0])):
             text_prompts[0][x] = text_prompts[0][x].strip()
-    hashid = hashlib.md5("-".join([prompt, str(seed)]).encode()).hexdigest()
+    hashid = hashlib.md5("-".join(text_prompts[0] + [str(seed)]).encode()).hexdigest()
 
     return hashid, text_prompts
 
