@@ -33,4 +33,5 @@ torch>=1.7
 torchvision
 tqdm
 flask
+flask_cors
 gdown
