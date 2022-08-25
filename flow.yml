@@ -1,0 +1,22 @@
+jtype: Flow
+with:
+  protocol: grpc
+  monitoring: true
+  cors: true
+  port: 51001
+  port_monitoring: 51002  # prometheus monitoring port
+  env:
+    JINA_LOG_LEVEL: debug
+executors:
+  - name: StableAI
+    uses: StableAIExecutor
+    py_modules:
+      - executors.py
+    env:
+      CUDA_VISIBLE_DEVICES: 1 # change this if you have multiple GPU
+    replicas: 1  # change this if you have larger VRAM
+    floating: false  # new feature in Jina 3.7, set this to true allows `create` to be immediately returned without waiting the response on the client
+  - name: poller
+    uses: ResultPoller
+    py_modules:
+      - executors.py

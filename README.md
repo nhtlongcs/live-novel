@@ -45,8 +45,51 @@ For debug mode, server will respone a random image. To enable debug mode, use fl
 
 For customize purpose, please clone this repo and use flag `-v $(pwd)/:/home/dreamer/workspace/src/` to replace source code in the docker
 
-## Acknoledgements
 
-To make this app work, we heavily adopted from [disco diffusion repo](https://github.com/alembics/disco-diffusion) and related projects (e.g. [gui-diffusion](https://github.com/crowsonkb/guided-diffusion), [resize-right](https://github.com/assafshocher/ResizeRight), [latent-diffusion](https://github.com/CompVis/latent-diffusion), [taming transformers](https://github.com/CompVis/taming-transformers))
+ ### Misuse, Malicious Use, and Out-of-Scope Use
+_Note: This section is taken from the [DALLE-MINI model card](https://huggingface.co/dalle-mini/dalle-mini), but applies in the same way to Stable Diffusion v1_.
 
-To enhance the result quality, we used [ESRGAN](https://github.com/xinntao/ESRGAN) for image super resolution.
+The model should not be used to intentionally create or disseminate images that create hostile or alienating environments for people. This includes generating images that people would foreseeably find disturbing, distressing, or offensive; or content that propagates historical or current stereotypes.
+
+#### Out-of-Scope Use
+The model was not trained to be factual or true representations of people or events, and therefore using the model to generate such content is out-of-scope for the abilities of this model.
+
+#### Misuse and Malicious Use
+Using the model to generate content that is cruel to individuals is a misuse of this model. This includes, but is not limited to:
+
+- Generating demeaning, dehumanizing, or otherwise harmful representations of people or their environments, cultures, religions, etc.
+- Intentionally promoting or propagating discriminatory content or harmful stereotypes.
+- Impersonating individuals without their consent.
+- Sexual content without consent of the people who might see it.
+- Mis- and disinformation
+- Representations of egregious violence and gore
+- Sharing of copyrighted or licensed material in violation of its terms of use.
+- Sharing content that is an alteration of copyrighted or licensed material in violation of its terms of use.
+
+
+## Comments 
+
+- My codebase for the application builds heavily on [Jina's DiscoArt](https://github.com/jina-ai/discoart). And use [Stable Diffusion Model](https://github.com/CompVis/stable-diffusion) as the core generation model.
+Thanks for open-sourcing!
+
+## Citation
+
+```
+@misc{rombach2021highresolution,
+      title={High-Resolution Image Synthesis with Latent Diffusion Models}, 
+      author={Robin Rombach and Andreas Blattmann and Dominik Lorenz and Patrick Esser and Björn Ommer},
+      year={2021},
+      eprint={2112.10752},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV}
+}
+
+@InProceedings{Rombach_2022_CVPR,
+    author    = {Rombach, Robin and Blattmann, Andreas and Lorenz, Dominik and Esser, Patrick and Ommer, Bj\"orn},
+    title     = {High-Resolution Image Synthesis With Latent Diffusion Models},
+    booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
+    month     = {June},
+    year      = {2022},
+    pages     = {10684-10695}
+}
+```
