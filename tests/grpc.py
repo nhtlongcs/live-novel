@@ -4,11 +4,13 @@ import numpy as np
 c = Client(host='grpc://0.0.0.0:51001')
 # random run id  
 run_id = np.random.randint(0, 1000000)
+seed = np.random.randint(0, 100)
 da = c.post(
     '/create',
     parameters={
         'sess_name': run_id,
         'prompt': 'a realistic photo of an spiderman riding bike on New York street trending on artstation',
+        'seed': seed,
     },
 )
 

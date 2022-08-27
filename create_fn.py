@@ -65,12 +65,17 @@ def create(
 )  -> Optional['DocumentArray']:
     da = DocumentArray()
     free_memory()
-    sess_name = str(sess_name)
+    # HARD CODED
+    ddim_steps = int(ddim_steps)
+    seed = int(seed)
+    height = int(height)
+    width = int(width)
+    # HARD CODED
     global _flag
+    output_dir = os.environ.get('NOVEL_OUTPUTS_DIR', './')
+    ckpt =  os.path.join(os.environ.get('NOVEL_CORE_MODULE'), "models/ldm/stable-diffusion-v1/model.ckpt")
+    config_file = os.path.join(os.environ.get('NOVEL_CORE_MODULE'), "configs/stable-diffusion/v1-inference.yaml")
     if not _flag:
-        output_dir = os.environ.get('NOVEL_OUTPUTS_DIR', './')
-        ckpt =  os.path.join(os.environ.get('NOVEL_CORE_MODULE'), "models/ldm/stable-diffusion-v1/model.ckpt")
-        config_file = os.path.join(os.environ.get('NOVEL_CORE_MODULE'), "configs/stable-diffusion/v1-inference.yaml")
         config = OmegaConf.load(f"{config_file}")
         device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
         wm = "StableDiffusionV1"
@@ -104,9 +109,7 @@ def create(
         assert prompt is not None
         data = [batch_size * [prompt]]
 
-        sample_path = os.path.join(outpath, "samples")
-        os.makedirs(sample_path, exist_ok=True)
-        base_count = len(os.listdir(sample_path))
+        base_count = len(os.listdir(output_dir))
         grid_count = len(os.listdir(outpath)) - 1
 
         start_code = None

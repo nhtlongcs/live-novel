@@ -11,7 +11,7 @@ os.makedirs(os.environ['NOVEL_OUTPUTS_DIR'], exist_ok=True)
 import asyncio
 from typing import Dict
 
-from jina import Document, DocumentArray, Executor, requests
+from jina import DocumentArray, Executor, requests
 
 from create_fn import create
 
@@ -46,7 +46,10 @@ class ResultPoller(Executor):
     def poll_results(self, parameters: Dict, **kwargs):
         sess_name = str(parameters['sess_name'])
         da_save_path = os.path.join(os.environ.get('NOVEL_OUTPUTS_DIR', './'), f"{sess_name}.protobuf.lz4")
-        da = DocumentArray.load_binary(da_save_path)
+        try:
+            da = DocumentArray.load_binary(da_save_path)
+        except FileNotFoundError as e:
+            da = DocumentArray()
         return da
     
 # https://docs.jina.ai/fundamentals/executor/executor-serve/

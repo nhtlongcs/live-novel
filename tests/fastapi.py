@@ -9,10 +9,12 @@ import numpy as np
 API = f"http://0.0.0.0:12345"
 
 run_id = np.random.randint(0, 1000000)
+seed = np.random.randint(0, 100)
 
 data = {
     'sess_name': str(run_id),
     'prompt': 'a realistic photo of an spiderman riding bicycle trending on artstation',
+    'seed': seed,
 }
 
 def byte_array_to_image(byte_array):
