@@ -1,18 +1,19 @@
-import asyncio
 import os
-from typing import Dict
-
-from jina import Executor, requests, DocumentArray, Document
-from create_fn import create
-import configparser 
+import configparser
 
 config = configparser.ConfigParser()
 config.read('executor_cfg.ini')
-
-# set os environment 
+# set os environment
 os.environ['NOVEL_CORE_MODULE'] = config['DEFAULT']['CORE_MODULE']
 os.environ['NOVEL_OUTPUTS_DIR'] = config['DEFAULT']['OUTPUTS_DIR']
 os.makedirs(os.environ['NOVEL_OUTPUTS_DIR'], exist_ok=True)
+
+import asyncio
+from typing import Dict
+
+from jina import Document, DocumentArray, Executor, requests
+
+from create_fn import create
 
 class StableAIExecutor(Executor):
     skip_event = asyncio.Event()

@@ -1,6 +1,6 @@
 import gc
 from itertools import islice
-
+import os 
 import cv2
 import numpy as np
 import torch
@@ -12,7 +12,7 @@ from transformers import AutoFeatureExtractor
 from stable_diffusion.ldm.util import instantiate_from_config
 
 # load safety model
-safety_model_id = "stable_diffusion/models/stable-diffusion-safety-checker"
+safety_model_id = os.path.join(os.environ.get('NOVEL_CORE_MODULE'), "models/stable-diffusion-safety-checker")
 safety_feature_extractor = AutoFeatureExtractor.from_pretrained(safety_model_id)
 safety_checker = StableDiffusionSafetyChecker.from_pretrained(safety_model_id)
 
