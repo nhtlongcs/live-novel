@@ -1,6 +1,5 @@
 # python scripts/txt2img.py --prompt "a photograph of an astronaut riding a horse" --plms 
 
-import argparse
 # ======== create 
 import copy
 import glob
@@ -10,16 +9,12 @@ import sys
 import time
 import warnings
 from asyncio.log import logger
-from contextlib import contextmanager, nullcontext
-from itertools import islice
-from types import SimpleNamespace
+from contextlib import nullcontext
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union, overload
 
 import cv2
 import numpy as np
 import torch
-from diffusers.pipelines.stable_diffusion.safety_checker import \
-    StableDiffusionSafetyChecker
 from einops import rearrange
 from imwatermark import WatermarkEncoder
 from omegaconf import OmegaConf
@@ -28,13 +23,11 @@ from pytorch_lightning import seed_everything
 from torch import autocast
 from torchvision.utils import make_grid
 from tqdm import tqdm, trange
-from transformers import AutoFeatureExtractor
 
 from stable_diffusion.ldm.models.diffusion.ddim import DDIMSampler
 from stable_diffusion.ldm.models.diffusion.plms import PLMSSampler
-from stable_diffusion.ldm.util import instantiate_from_config
-from utils import (check_safety, chunk, free_memory, load_model_from_config,
-                   numpy_to_pil, put_watermark)
+from utils import (check_safety, free_memory, load_model_from_config,
+                   put_watermark)
 
 if TYPE_CHECKING:
     import threading
@@ -48,7 +41,6 @@ _flag = False
 def create(
     prompt: str,
     sess_name: Optional[str] = None,
-    output_dir: Optional[str] = "outputs/",
     skip_grid: Optional[bool] = True,
     skip_save: Optional[bool] = False,
     ddim_steps: Optional[int] = 50,
@@ -63,17 +55,22 @@ def create(
     n_samples: Optional[int] = 1,
     n_rows: Optional[int] = 0,
     scale: Optional[float] = 7.5,
-    config_file: Optional[str] = "stable_diffusion/configs/stable-diffusion/v1-inference.yaml",
-    ckpt: Optional[str] = "stable_diffusion/models/ldm/stable-diffusion-v1/model.ckpt",
     seed: Optional[int] = 42,
     precision: Optional[str] = "autocast",
     skip_event=None,
     stop_event=None,
+    # output_dir: Optional[str] = None,
+    # config_file: Optional[str] = None,
+    # ckpt: Optional[str] = None,
 )  -> Optional['DocumentArray']:
     da = DocumentArray()
     free_memory()
+    sess_name = str(sess_name)
     global _flag
     if not _flag:
+        output_dir = os.environ.get('NOVEL_OUTPUTS_DIR', './')
+        ckpt =  os.path.join(os.environ.get('NOVEL_CORE_MODULE'), "models/ldm/stable-diffusion-v1/model.ckpt")
+        config_file = os.path.join(os.environ.get('NOVEL_CORE_MODULE'), "configs/stable-diffusion/v1-inference.yaml")
         config = OmegaConf.load(f"{config_file}")
         device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
         wm = "StableDiffusionV1"
@@ -153,10 +150,10 @@ def create(
                                 for x_sample in x_checked_image_torch:
                                     x_sample = 255. * rearrange(x_sample.cpu().numpy(), 'c h w -> h w c')
                                     da.append(Document(tensor=x_sample.astype(np.uint8)))
-                                    img = Image.fromarray(x_sample.astype(np.uint8))
-                                    img = put_watermark(img, wm_encoder)
-                                    img.save(os.path.join(sample_path, f"{base_count:05}.png"))
-                                    base_count += 1
+                                    # img = Image.fromarray(x_sample.astype(np.uint8))
+                                    # img = put_watermark(img, wm_encoder)
+                                    # img.save(os.path.join(sample_path, f"{base_count:05}.png"))
+                                    # base_count += 1
 
 
                             if not skip_grid:
@@ -179,9 +176,11 @@ def create(
 
         print(f"Your samples are ready and waiting for you here: \n{outpath} \n"
             f" \nEnjoy.")
-        da.save_binary(os.path.join(sample_path, f"{sess_name}.protobuf.lz4"))
+        da_save_dir = os.path.join(output_dir, f"{sess_name}.protobuf.lz4")
+        da.save_binary(da_save_dir)
     except Exception as e:
         logger.exception(e)
     finally:
         free_memory()
+
 

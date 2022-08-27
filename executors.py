@@ -4,6 +4,15 @@ from typing import Dict
 
 from jina import Executor, requests, DocumentArray, Document
 from create_fn import create
+import configparser 
+
+config = configparser.ConfigParser()
+config.read('executor_cfg.ini')
+
+# set os environment 
+os.environ['NOVEL_CORE_MODULE'] = config['DEFAULT']['CORE_MODULE']
+os.environ['NOVEL_OUTPUTS_DIR'] = config['DEFAULT']['OUTPUTS_DIR']
+os.makedirs(os.environ['NOVEL_OUTPUTS_DIR'], exist_ok=True)
 
 class StableAIExecutor(Executor):
     skip_event = asyncio.Event()
@@ -34,10 +43,9 @@ class StableAIExecutor(Executor):
 class ResultPoller(Executor):
     @requests(on='/result')
     def poll_results(self, parameters: Dict, **kwargs):
-        print(parameters['sess_name'])
-        output_dir = 'outputs/samples' # hardcoded for now
-        path = os.path.join(output_dir, parameters['sess_name'] + '.protobuf.lz4')
-        da = DocumentArray.load_binary(path)
+        sess_name = str(parameters['sess_name'])
+        da_save_path = os.path.join(os.environ.get('NOVEL_OUTPUTS_DIR', './'), f"{sess_name}.protobuf.lz4")
+        da = DocumentArray.load_binary(da_save_path)
         return da
     
 # https://docs.jina.ai/fundamentals/executor/executor-serve/
