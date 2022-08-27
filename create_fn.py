@@ -47,7 +47,7 @@ if TYPE_CHECKING:
 
 from docarray import DocumentArray, Document
 
-_clip_models_cache = {}
+_models_cache = {}
 
 def chunk(it, size):
     it = iter(it)
@@ -118,6 +118,8 @@ def check_safety(x_image):
 def free_memory():
     gc.collect()
     torch.cuda.empty_cache()
+
+_flag = False
 def create(
     prompt: str,
     sess_name: Optional[str] = None,
@@ -130,7 +132,7 @@ def create(
     ddim_eta: Optional[float] = 0.0,
     n_iter: Optional[int] = 1,
     height: Optional[int] = 512,
-    width: Optional[int] = 512,
+    width: Optional[int] = 768,
     l_channels: Optional[int] = 4,
     f_downsample: Optional[int] = 8,
     n_samples: Optional[int] = 1,
@@ -145,28 +147,33 @@ def create(
 )  -> Optional['DocumentArray']:
     da = DocumentArray()
     free_memory()
-    try:
-            
-        seed_everything(seed)
-
+    global _flag
+    if not _flag:
         config = OmegaConf.load(f"{config_file}")
-        model = load_model_from_config(config, f"{ckpt}")
-
         device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-        model = model.to(device)
+        wm = "StableDiffusionV1"
+        _flag = True
 
-        if plms:
-            sampler = PLMSSampler(model)
-        else:
-            sampler = DDIMSampler(model)
+    try:
+        seed_everything(seed)
+        if _models_cache.get('ckpt', None) is None:
+            _models_cache['ckpt'] = load_model_from_config(config, f"{ckpt}").to(device)
+        model = _models_cache['ckpt']
+        
+        if _models_cache.get('sampler', None) is None:
+            _models_cache['sampler'] = DDIMSampler(model) if not plms else PLMSSampler(model)
+        sampler = _models_cache['sampler']
+
+        if _models_cache.get('wm_encoder', None) is None:
+            _models_cache['wm_encoder'] = WatermarkEncoder()
+            _models_cache['wm_encoder'].set_watermark('bytes', wm.encode('utf-8'))
+        wm_encoder = _models_cache['wm_encoder']
+
 
         os.makedirs(output_dir, exist_ok=True)
         outpath = output_dir
 
         print("Creating invisible watermark encoder (see https://github.com/ShieldMnt/invisible-watermark)...")
-        wm = "StableDiffusionV1"
-        wm_encoder = WatermarkEncoder()
-        wm_encoder.set_watermark('bytes', wm.encode('utf-8'))
 
         batch_size = n_samples
         n_rows = n_rows if n_rows > 0 else batch_size
