@@ -57,6 +57,7 @@ def create(
     scale: Optional[float] = 7.5,
     seed: Optional[int] = 42,
     precision: Optional[str] = "autocast",
+    allow_nsfw: Optional[bool] = False,
     skip_event=None,
     stop_event=None,
     # output_dir: Optional[str] = None,
@@ -71,7 +72,7 @@ def create(
     height = int(height)
     width = int(width)
     # HARD CODED
-    global _flag
+    global _flag, _models_cache
     output_dir = os.environ.get('NOVEL_OUTPUTS_DIR', './')
     ckpt =  os.path.join(os.environ.get('NOVEL_CORE_MODULE'), "models/ldm/stable-diffusion-v1/model.ckpt")
     config_file = os.path.join(os.environ.get('NOVEL_CORE_MODULE'), "configs/stable-diffusion/v1-inference.yaml")
@@ -144,8 +145,7 @@ def create(
                             x_samples_ddim = model.decode_first_stage(samples_ddim)
                             x_samples_ddim = torch.clamp((x_samples_ddim + 1.0) / 2.0, min=0.0, max=1.0)
                             x_samples_ddim = x_samples_ddim.cpu().permute(0, 2, 3, 1).numpy()
-
-                            x_checked_image, has_nsfw_concept = check_safety(x_samples_ddim)
+                            x_checked_image, has_nsfw_concept = check_safety(x_samples_ddim, allow_nsfw)
 
                             x_checked_image_torch = torch.from_numpy(x_checked_image).permute(0, 3, 1, 2)
 
@@ -181,6 +181,7 @@ def create(
             f" \nEnjoy.")
         da_save_dir = os.path.join(output_dir, f"{sess_name}.protobuf.lz4")
         da.save_binary(da_save_dir)
+        del c, uc, samples_ddim, x_samples_ddim, x_checked_image, x_checked_image_torch # grid, img
     except Exception as e:
         logger.exception(e)
     finally:
