@@ -1,4 +1,6 @@
 jtype: Flow
+metas:
+  prefetch: 0
 with:
   protocol: grpc
   monitoring: true
@@ -13,7 +15,7 @@ executors:
     py_modules:
       - executors.py
     env:
-      CUDA_VISIBLE_DEVICES: RR0:2 # change this if you have more GPU
+      CUDA_VISIBLE_DEVICES: RR # change this if you have more GPU
     replicas: 2  # change this if you have larger VRAM
     floating: false  # new feature in Jina 3.7, set this to true allows `create` to be immediately returned without waiting the response on the client
   - name: poller

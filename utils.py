@@ -73,7 +73,7 @@ def load_replacement(x):
 
 
 def check_safety(x_image, allow_nsfw):
-    print("================ has_nsfw_concept: {} =================".format(allow_nsfw))
+    print("================ allow_nsfw_concept: {} =================".format(allow_nsfw))
     if allow_nsfw:
         return x_image, None
     safety_checker_input = safety_feature_extractor(numpy_to_pil(x_image), return_tensors="pt")
