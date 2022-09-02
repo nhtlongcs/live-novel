@@ -10,7 +10,7 @@
 
 </div>
 
-![](assets/demo.png)
+![](assets/demo_short.gif)
 
 <div align="center">
 
@@ -32,6 +32,8 @@ Introducing a new app that is ~now available~ (WIP) on [novel.nhtlongcs.com](htt
 ## Getting started
 <!-- how to using app -->
 TODO: add instruction
+![](assets/quickstart.gif)
+
 
 ## Installation 
 **For self-hosting purposes, you can install Live Novel yourself.**
