@@ -1,15 +1,20 @@
+
 <div align="center">
 
 # Live Novel
+
+
 ---
 
 **Self-host application can generate illustration from a novel by highlighting certain sentences**
 
+</div>
 
-<img src="assets/demo.png" alt="Screenshot of the app" align="center" width="80%">
+![](assets/demo.png)
+
+<div align="center">
 
 ![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)
-
 </div>
 
 ---
