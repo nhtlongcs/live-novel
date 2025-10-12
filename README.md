@@ -90,21 +90,6 @@ python -m jina flow --uses flow.yml
 The expected output should be like this:
 <img src="assets/serving.png" alt="Screenshot of the output serving command" align="center" width="100%">
 
-TODO: add instruction
-
-
-### Via Google Colab
-We also provide a Google Colab notebook for you to try out to serve the app using free gpu resource without waiting behind other pending requests on our server. You can find the notebook [here](https://colab.research.google.com/github/)
-
-TODO: add instruction
-
-
-### Via Kubernetes
-
-The official serving method is via Kubernetes. Thanks to [Selab](https://www.fit.hcmus.edu.vn/vn/Default.aspx?tabid=292&id=9510) for providing gpu resources for this project.
-
-TODO: add instruction
-
 ### Via Docker
 
 ```bash
