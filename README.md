@@ -19,7 +19,7 @@
 
 ---
 
-Introducing a new app that is ~now available~ (WIP) on [novel.nhtlongcs.com](https://novel.nhtlongcs.com/). This app can generate images from a novel by highlighting certain sentences. The app is easy to use; all you have to do is enter the name of the book and the highlighted sentences will be displayed as images. This can be a great way for authors to promote their work, or for readers to get imagination of what the scene is about without having to do it themselves. 
+This app can generate images from a novel by highlighting certain sentences. The app is easy to use; all you have to do is enter the name of the book and the highlighted sentences will be displayed as images. This can be a great way for authors to promote their work, or for readers to get imagination of what the scene is about without having to do it themselves. 
 *At the moment, the app is only available with default book for proof of concept.*
 
 ## Main features 
